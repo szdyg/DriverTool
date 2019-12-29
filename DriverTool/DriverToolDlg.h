@@ -37,10 +37,11 @@ protected:
     afx_msg void OnBnClickedBtnUnintsall();
     DECLARE_MESSAGE_MAP()
 
-public:
     CString _Driverlog;
     CString _DriverPath;
     CEdit _ComError;
     CEdit _Win32Error;
     CEdit _NtstatusError;
+public:
+    afx_msg void OnEnChangeEditWin32Error();
 };

@@ -83,6 +83,7 @@ BEGIN_MESSAGE_MAP(CDriverToolDlg, CDialogEx)
     ON_BN_CLICKED(IDC_BTN_START, &CDriverToolDlg::OnBnClickedBtnStart)
     ON_BN_CLICKED(IDC_BTN_STOP, &CDriverToolDlg::OnBnClickedBtnStop)
     ON_BN_CLICKED(IDC_BTN_UNINTSALL, &CDriverToolDlg::OnBnClickedBtnUnintsall)
+    ON_EN_CHANGE(IDC_EDIT_WIN32_ERROR, &CDriverToolDlg::OnEnChangeEditWin32Error)
 END_MESSAGE_MAP()
 
 
@@ -118,6 +119,8 @@ BOOL CDriverToolDlg::OnInitDialog()
     SetIcon(m_hIcon, FALSE);		// 设置小图标
 
     ShowWindow(SW_SHOW);
+    ChangeWindowMessageFilter(WM_DROPFILES, MSGFLT_ADD);
+    ChangeWindowMessageFilter(0x0049, MSGFLT_ADD);        // 0x0049 == WM_COPYGLOBALDATA
 
     // TODO: 在此添加额外的初始化代码
 
@@ -380,4 +383,54 @@ void CDriverToolDlg::OnBnClickedBtnUnintsall()
     {
         ShowLog(L"卸载驱动成功");
     }
+}
+
+
+void CDriverToolDlg::OnEnChangeEditWin32Error()
+{
+    // TODO:  如果该控件是 RICHEDIT 控件，它将不
+    // 发送此通知，除非重写 CDialogEx::OnInitDialog()
+    // 函数并调用 CRichEditCtrl().SetEventMask()，
+    // 同时将 ENM_CHANGE 标志“或”运算到掩码中。
+
+    // TODO:  在此添加控件通知处理程序代码
+    CString ErrorCodeStr;
+    std::vector<WCHAR> invalids;
+
+    _Win32Error.GetWindowTextW(ErrorCodeStr);
+    if (!ErrorCodeStr.IsEmpty())
+    {
+        PWCHAR pStr = ErrorCodeStr.GetBuffer();
+        for (ULONG i = 0; i < ErrorCodeStr.GetLength(); i++)
+        {
+            WCHAR wCheck = pStr[i];
+
+            if (wCheck >= L'a' && wCheck <= L'z')
+            {
+                wCheck -= 0x20;
+            }
+
+            if (wCheck >= L'0' && wCheck <= L'9' ||
+                wCheck >= L'A' && wCheck <= L'F' ||
+                wCheck == L'X' ||
+                wCheck == L'-')
+            {
+
+            }
+            else
+            {
+                invalids.push_back(wCheck);
+            }
+        }
+
+        for (auto & invalid : invalids)
+        {
+            WCHAR temp[2] = { 0 };
+            temp[0] = invalid;
+            ErrorCodeStr.Replace(temp, NULL);
+        }
+        _Win32Error.SetWindowTextW(ErrorCodeStr);
+
+    }
+
 }
